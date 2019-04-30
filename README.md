@@ -39,6 +39,8 @@ Point all the subdomains you will be using to the public IP of your host VM, the
 
 Go through all the compose.yml files in the root directory and find-replace your configured domains for NGINX/SSLs and email address for LetsEncrypt if you want emails from them about alerts on your SSLs.
 
+Setup / change / remove / add proxy configurations in the proxy/conf.d folder, they will all be mounted inside your NGINX container and used.
+
 ## Setup
 
 Then clone this repo on the host machine and all commands from now will assume you are in the repo root directory.
