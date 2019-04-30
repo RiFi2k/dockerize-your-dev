@@ -1,0 +1,64 @@
+version: "3"
+
+services:
+  cadvisor:
+    build:
+      context: monitoring/cadvisor/
+    container_name: cadvisor
+    volumes:
+      - "/:/rootfs:ro"
+      - "/var/run:/var/run:ro"
+      - "/sys:/sys:ro"
+      - "/dev/disk/:/dev/disk:ro"
+      - "/var/lib/docker/:/var/lib/docker:ro"
+    logging:
+      driver: json-file
+      options:
+        max-size: "4m"
+        max-file: "10"
+    environment:
+      - VIRTUAL_HOST=cadvisor.example.com
+      - VIRTUAL_PORT=8080
+      - LETSENCRYPT_HOST=cadvisor.example.com
+      - LETSENCRYPT_EMAIL=you@youremail.com
+
+  alertmanager:
+    build:
+      context: monitoring/alertmanager/
+    container_name: alertmanager
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "4m"
+        max-file: "10"
+    environment:
+      - VIRTUAL_HOST=alertmanager.example.com
+      - VIRTUAL_PORT=9093
+      - LETSENCRYPT_HOST=alertmanager.example.com
+      - LETSENCRYPT_EMAIL=you@youremail.com
+
+  node-exporter:
+    build:
+      context: monitoring/node-exporter/
+    container_name: node-exporter
+    volumes:
+      - "/proc:/host/proc:ro"
+      - "/sys:/host/sys:ro"
+      - "/:/rootfs:ro"
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--collector.filesystem.ignored-mount-points"
+      - ^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "4m"
+        max-file: "10"
+
+networks:
+  default:
+    external:
+      name: webproxy

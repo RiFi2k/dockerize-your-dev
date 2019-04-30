@@ -1,0 +1,1 @@
+FROM portainer/portainer:latest

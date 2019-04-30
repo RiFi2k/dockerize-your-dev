@@ -1,0 +1,71 @@
+version: "2.3"
+
+services:
+  elasticsearch:
+    build:
+      context: logging/elasticsearch/
+    container_name: elasticsearch
+    volumes:
+      - elasticsearch:/usr/share/elasticsearch/data
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+    mem_limit: 2g
+
+  logstash:
+    build:
+      context: logging/logstash/
+    volumes:
+      - ./logging/logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+      - ./logging/logstash/pipeline:/usr/share/logstash/pipeline:ro
+    environment:
+      LS_JAVA_OPTS: "-Xmx750m -Xms750m"
+    depends_on:
+      - elasticsearch
+
+  kibana:
+    build:
+      context: logging/kibana/
+    container_name: kibana
+    depends_on:
+      - elasticsearch
+    logging:
+      driver: json-file
+      options:
+        max-size: "4m"
+        max-file: "10"
+    environment:
+      - VIRTUAL_HOST=kibana.example.com
+      - VIRTUAL_PORT=5601
+      - LETSENCRYPT_HOST=kibana.example.com
+      - LETSENCRYPT_EMAIL=you@youremail.com
+
+  logspout:
+    build:
+      context: logging/extensions/logspout/
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      ROUTE_URIS: logstash://logstash:5000
+      LOGSTASH_TAGS: docker-elk
+    depends_on:
+      - logstash
+    restart: on-failure
+    logging:
+      driver: json-file
+      options:
+        max-size: "4m"
+        max-file: "10"
+
+volumes:
+  elasticsearch:
+
+networks:
+  default:
+    external:
+      name: webproxy

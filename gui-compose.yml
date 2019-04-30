@@ -1,0 +1,30 @@
+version: "2"
+
+services:
+  portainer:
+    build:
+      context: gui/portainer/
+    container_name: portainer
+    command: -H unix:///var/run/docker.sock
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    logging:
+      driver: json-file
+      options:
+        max-size: "4m"
+        max-file: "10"
+    environment:
+      - VIRTUAL_HOST=portainer.example.com
+      - VIRTUAL_PORT=9000
+      - LETSENCRYPT_HOST=portainer.example.com
+      - LETSENCRYPT_EMAIL=you@youremail.com
+
+volumes:
+  portainer_data:
+
+networks:
+  default:
+    external:
+      name: webproxy

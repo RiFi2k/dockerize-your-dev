@@ -1,0 +1,1 @@
+FROM google/cadvisor:latest
