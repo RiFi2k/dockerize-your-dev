@@ -26,24 +26,29 @@ Unfortunatly this setup with the SSL provisioning is not localhost friendly, als
 
 ## Pre-Setup
 
-On your host VM install `docker` and `docker-compose`, if you can't get this going probably this stack is not what your looking for anyways.
+1. On your host VM install `docker` and `docker-compose`, if you can't get this going probably this stack is not what your looking for anyways.
 
-On the host make sure /etc/sysctl.conf has vm.max_map_count set to at least 262144 - `vm.max_map_count=262144`
+2. On the host make sure /etc/sysctl.conf has vm.max_map_count set to at least 262144 - `vm.max_map_count=262144`
 
-Point all the subdomains you will be using to the public IP of your host VM, these are examples of what you may want to use.
+3. Point all the subdomains you will be using to the public IP of your host VM, these are examples of what you may want to use.
 
 * kibana.example.com
 * cadvisor.example.com
 * alertmanager.example.com
 * portainer.example.com
+* grafana.example.com
+* prometheus.example.com
 
-Go through all the compose.yml files in the root directory and find-replace your configured domains for NGINX/SSLs and email address for LetsEncrypt if you want emails from them about alerts on your SSLs.
+4. Go through all the compose.yml files in the root directory and find-replace your configured domains for NGINX/SSLs and email address for LetsEncrypt if you want emails from them about alerts on your SSLs.
 
-Setup / change / remove / add proxy configurations in the proxy/conf.d folder, they will all be mounted inside your NGINX container and used.
+```bash
+find -type f -name "*-compose.yml" | xargs sed -i "s/example.com/yourdomain.com/g"
+find -type f -name "*-compose.yml" | xargs sed -i "s/you@youremail.com/yourname@yourdomain.com/g"
+```
+
+5. (Optional) Setup / change / remove / add proxy configurations in the proxy/conf.d folder, they will all be mounted inside your NGINX container and used.
 
 ## Setup
-
-Then clone this repo on the host machine and all commands from now will assume you are in the repo root directory.
 
 1. Install the proxy
 
@@ -99,3 +104,5 @@ https://github.com/jwilder/nginx-proxy
 https://github.com/buchdag/letsencrypt-nginx-proxy-companion-compose
 
 https://github.com/evertramos/docker-compose-letsencrypt-nginx-proxy-companion
+
+https://github.com/vegasbrianc/prometheus
