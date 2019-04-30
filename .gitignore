@@ -28,5 +28,4 @@
 .DS_Store
 
 # Repo specific
-data
-htpasswd
+.env

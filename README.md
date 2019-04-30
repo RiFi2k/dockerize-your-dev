@@ -43,6 +43,8 @@ Unfortunatly this setup with the SSL provisioning is not localhost friendly, als
 ```bash
 find -type f -name "*-compose.yml" | xargs sed -i "s/example.com/yourdomain.com/g"
 find -type f -name "*-compose.yml" | xargs sed -i "s/you@youremail.com/yourname@yourdomain.com/g"
+find -type f -name "sentry/config.yml" | xargs sed -i "s/example.com/yourdomain.com/g"
+find -type f -name "sentry/config.yml" | xargs sed -i "s/you@youremail.com/yourname@yourdomain.com/g"
 ```
 
 5. (Optional) Setup / change / remove / add proxy configurations in the proxy/conf.d folder, they will all be mounted inside your NGINX container and used.
@@ -95,15 +97,35 @@ docker-compose -f gui-compose.yml up -d
 
 https://github.com/getsentry/onpremise
 
-1. `cp -n sentry/.env.example sentry/.env` - create env config file
+1. Create env config file
 
-2. `docker-compose -f sentry-compose.yml build` - Build and tag the Docker services
+```bash
+cp -n sentry/.env.example sentry/.env
+```
 
-3. `docker-compose -f sentry-compose.yml run --rm sentry-web config generate-secret-key` - Generate a secret key. Add it to .env as SENTRY_SECRET_KEY.
+2. Build and tag the Docker services
 
-4. `docker-compose -f sentry-compose.yml run --rm sentry-web upgrade` - Build the database. Use the interactive prompts to create a user account.
+```bash
+docker-compose -f sentry-compose.yml build
+```
 
-5. `docker-compose -f sentry-compose.yml up -d` - Lift all services (detached/background mode).
+3. Generate a secret key. Add it to sentry/.env as SENTRY_SECRET_KEY
+
+```bash
+docker-compose -f sentry-compose.yml run --rm sentry-web config generate-secret-key
+```
+
+4. Build the database. Use the interactive prompts to create a user account
+
+```bash
+docker-compose -f sentry-compose.yml run --rm sentry-web upgrade
+```
+
+5. Lift all services (detached/background mode)
+
+```bash
+docker-compose -f sentry-compose.yml up -d
+```
 
 ** To Upgrade **
 
