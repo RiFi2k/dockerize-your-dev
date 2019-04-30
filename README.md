@@ -10,8 +10,7 @@ All the monthly fees for git, logging, monitoring, error monitoring, alerting, C
 
 - [x] Portainer (gui)
 - [x] ELK Stack (logging)
-- [x] cadvisor (monitoring)
-- [ ] Grafana/Prometheus (monitoring)
+- [x] Grafana/Prometheus (monitoring)
 - [ ] Gitea (git)
 - [ ] Sentry (errors)
 - [ ] Mattermost (chat)
@@ -73,13 +72,15 @@ sudo sh -c "openssl passwd -apr1 >> /var/lib/docker/volumes/dockerize-your-dev_h
 ```bash
 docker-compose -f monitoring-compose.yml up -d
 ```
-** Optional ** Setup basic auth for cadvisor and alertmanager
+** Optional ** Setup basic auth for cadvisor, alertmanager, and prometheus
 
 ```bash
 sudo sh -c "echo -n '[username]:' >> /var/lib/docker/volumes/dockerize-your-dev_htpasswd/_data/cadvisor.example.com"
 sudo sh -c "openssl passwd -apr1 >> /var/lib/docker/volumes/dockerize-your-dev_htpasswd/_data/cadvisor.example.com"
 sudo sh -c "echo -n '[username]:' >> /var/lib/docker/volumes/dockerize-your-dev_htpasswd/_data/alertmanager.example.com"
 sudo sh -c "openssl passwd -apr1 >> /var/lib/docker/volumes/dockerize-your-dev_htpasswd/_data/alertmanager.example.com"
+sudo sh -c "echo -n '[username]:' >> /var/lib/docker/volumes/dockerize-your-dev_htpasswd/_data/prometheus.example.com"
+sudo sh -c "openssl passwd -apr1 >> /var/lib/docker/volumes/dockerize-your-dev_htpasswd/_data/prometheus.example.com"
 ```
 
 4. Install the docker GUI
