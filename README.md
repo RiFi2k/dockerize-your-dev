@@ -99,9 +99,9 @@ https://github.com/getsentry/onpremise
 
 2. `docker-compose -f sentry-compose.yml build` - Build and tag the Docker services
 
-3. `docker-compose -f sentry-compose.yml run --rm web config generate-secret-key` - Generate a secret key. Add it to .env as SENTRY_SECRET_KEY.
+3. `docker-compose -f sentry-compose.yml run --rm sentry-web config generate-secret-key` - Generate a secret key. Add it to .env as SENTRY_SECRET_KEY.
 
-4. `docker-compose -f sentry-compose.yml run --rm web upgrade` - Build the database. Use the interactive prompts to create a user account.
+4. `docker-compose -f sentry-compose.yml run --rm sentry-web upgrade` - Build the database. Use the interactive prompts to create a user account.
 
 5. `docker-compose -f sentry-compose.yml up -d` - Lift all services (detached/background mode).
 
@@ -111,7 +111,7 @@ Use the following steps after updating sentry Dockerfile:
 
 ```bash
 docker-compose -f sentry-compose.yml build # Build the services again after updating
-docker-compose -f sentry-compose.yml run --rm web upgrade # Run new migrations
+docker-compose -f sentry-compose.yml run --rm sentry-web upgrade # Run new migrations
 docker-compose -f sentry-compose.yml up -d # Recreate the services
 ```
 
