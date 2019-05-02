@@ -12,7 +12,7 @@ All the monthly fees for git, logging, monitoring, error monitoring, alerting, C
 - [x] ELK Stack (logging)
 - [x] Grafana/Prometheus (monitoring)
 - [ ] Gitea (git)
-- [ ] Sentry (errors)
+- [x] Sentry (errors)
 - [ ] Mattermost (chat)
 - [x] NGINX (proxy)
 - [x] LetsEncrypt (safety)
@@ -37,14 +37,13 @@ Unfortunatly this setup with the SSL provisioning is not localhost friendly, als
 * portainer.example.com
 * grafana.example.com
 * prometheus.example.com
+* sentry.example.com
 
 4. Go through all the compose.yml files in the root directory and find-replace your configured domains for NGINX/SSLs and email address for LetsEncrypt if you want emails from them about alerts on your SSLs.
 
 ```bash
 find -type f -name "*-compose.yml" | xargs sed -i "s/example.com/yourdomain.com/g"
 find -type f -name "*-compose.yml" | xargs sed -i "s/you@youremail.com/yourname@yourdomain.com/g"
-find -type f -name "sentry/config.yml" | xargs sed -i "s/example.com/yourdomain.com/g"
-find -type f -name "sentry/config.yml" | xargs sed -i "s/you@youremail.com/yourname@yourdomain.com/g"
 ```
 
 5. (Optional) Setup / change / remove / add proxy configurations in the proxy/conf.d folder, they will all be mounted inside your NGINX container and used.
@@ -95,33 +94,19 @@ docker-compose -f gui-compose.yml up -d
 
 ### Sentry
 
-https://github.com/getsentry/onpremise
-
-1. Create env config file
+1. Generate a secret key. Add it to sentry/.env as SENTRY_SECRET_KEY
 
 ```bash
-cp -n sentry/.env.example sentry/.env
+echo -e "\nSENTRY_SECRET_KEY=$(docker-compose run --rm sentry-base sentry config generate-secret-key)" >> sentry/sentry.env
 ```
 
-2. Build and tag the Docker services
+2. Build the database. Use the interactive prompts to create a user account
 
 ```bash
-docker-compose -f sentry-compose.yml build
+docker-compose -f sentry-compose.yml run --rm sentry-base sentry upgrade
 ```
 
-3. Generate a secret key. Add it to sentry/.env as SENTRY_SECRET_KEY
-
-```bash
-docker-compose -f sentry-compose.yml run --rm sentry-web config generate-secret-key
-```
-
-4. Build the database. Use the interactive prompts to create a user account
-
-```bash
-docker-compose -f sentry-compose.yml run --rm sentry-web upgrade
-```
-
-5. Lift all services (detached/background mode)
+3. Start it
 
 ```bash
 docker-compose -f sentry-compose.yml up -d
@@ -132,9 +117,8 @@ docker-compose -f sentry-compose.yml up -d
 Use the following steps after updating sentry Dockerfile:
 
 ```bash
-docker-compose -f sentry-compose.yml build # Build the services again after updating
-docker-compose -f sentry-compose.yml run --rm sentry-web upgrade # Run new migrations
-docker-compose -f sentry-compose.yml up -d # Recreate the services
+docker-compose -f sentry-compose.yml run --rm sentry-web upgrade
+docker-compose -f sentry-compose.yml up -d
 ```
 
 #### Basic Auth

@@ -1,130 +1,71 @@
-version: "2"
+version: '3'
 
 services:
-  sentry-redis:
-    build:
-      context: sentry/redis/
-    container_name: sentry-redis
-    restart: unless-stopped
-    logging:
-      driver: json-file
-      options:
-        max-size: "4m"
-        max-file: "10"
+  smtp:
+    image: 'tianon/exim4:latest'
+    environment:
+      GMAIL_USER: 'example@gmail.com'
+      GMAIL_PASSWORD: ''
 
-  sentry-memcached:
-    build:
-      context: sentry/memcached/
-    container_name: sentry-memcached
-    restart: unless-stopped
-    logging:
-      driver: json-file
-      options:
-        max-size: "4m"
-        max-file: "10"
-
-  sentry-smtp:
-    build:
-      context: sentry/smtp/
-    container_name: sentry-smtp
-    restart: unless-stopped
-    logging:
-      driver: json-file
-      options:
-        max-size: "4m"
-        max-file: "10"
-
-  sentry-postgres:
-    build:
-      context: sentry/postgres/
-    container_name: sentry-postgres
-    volumes:
-      - sentry_postgres:/var/lib/postgresql/data
-    restart: unless-stopped
-    logging:
-      driver: json-file
-      options:
-        max-size: "4m"
-        max-file: "10"
-
-  sentry-web:
-    build:
-      context: sentry/
-    container_name: sentry-web
-    volumes:
-      - sentry_data:/var/lib/sentry/files
+  sentry-base:
+    image: 'sentry:latest'
+    container_name: sentry-base
     restart: unless-stopped
     depends_on:
       - sentry-redis
       - sentry-postgres
-      - sentry-memcached
-      - sentry-smtp
-    env_file: ./sentry/.env
-    logging:
-      driver: json-file
-      options:
-        max-size: "4m"
-        max-file: "10"
+    links:
+      - sentry-redis
+      - sentry-postgres
+    env_file:
+      - sentry/sentry.env
+    volumes:
+      - sentry_data:/var/lib/sentry/files
     environment:
       - VIRTUAL_HOST=sentry.example.com
       - VIRTUAL_PORT=9000
       - LETSENCRYPT_HOST=sentry.example.com
       - LETSENCRYPT_EMAIL=you@youremail.com
-      - SENTRY_MEMCACHED_HOST=sentry-memcached
-      - SENTRY_REDIS_HOST=sentry-redis
-      - SENTRY_POSTGRES_HOST=sentry-postgres
-      - SENTRY_EMAIL_HOST=sentry-smtp
 
   sentry-cron:
-    build:
-      context: sentry/
-    container_name: sentry-cron
-    command: run cron
-    volumes:
-      - sentry_data:/var/lib/sentry/files
+    image: 'sentry:latest'
     restart: unless-stopped
     depends_on:
+      - sentry-base
+    links:
       - sentry-redis
       - sentry-postgres
-      - sentry-memcached
-      - sentry-smtp
-    env_file: ./sentry/.env
-    logging:
-      driver: json-file
-      options:
-        max-size: "4m"
-        max-file: "10"
-    environment:
-      - SENTRY_MEMCACHED_HOST=sentry-memcached
-      - SENTRY_REDIS_HOST=sentry-redis
-      - SENTRY_POSTGRES_HOST=sentry-postgres
-      - SENTRY_EMAIL_HOST=sentry-smtp
+    command: "sentry run cron"
+    env_file:
+      - sentry/sentry.env
+    volumes:
+      - sentry_data:/var/lib/sentry/files
 
   sentry-worker:
-    build:
-      context: sentry/
-    container_name: sentry-worker
-    command: run worker
-    volumes:
-      - sentry_data:/var/lib/sentry/files
-    restart: unless-stopped
+    image: 'sentry:latest'
     depends_on:
+      - sentry-base
+    links:
       - sentry-redis
       - sentry-postgres
-      - sentry-memcached
-      - sentry-smtp
-    env_file: ./sentry/.env
-    logging:
-      driver: json-file
-      options:
-        max-size: "4m"
-        max-file: "10"
-    environment:
-      - SENTRY_MEMCACHED_HOST=sentry-memcached
-      - SENTRY_REDIS_HOST=sentry-redis
-      - SENTRY_POSTGRES_HOST=sentry-postgres
-      - SENTRY_EMAIL_HOST=sentry-smtp
+    command: "sentry run worker"
+    env_file:
+      - sentry/sentry.env
+    volumes:
+      - sentry_data:/var/lib/sentry/files
 
+
+  sentry-redis:
+    image: 'redis:latest'
+
+  sentry-postgres:
+    image: 'postgres:latest'
+    environment:
+      POSTGRES_USER: sentry
+      POSTGRES_PASSWORD: sentry
+      POSTGRES_DB: sentry
+    volumes:
+      - sentry_postgres:/var/lib/postgresql/data
 
 volumes:
   sentry_postgres:
