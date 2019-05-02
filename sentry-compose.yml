@@ -1,0 +1,77 @@
+version: '3'
+
+services:
+  smtp:
+    image: 'tianon/exim4:latest'
+    environment:
+      GMAIL_USER: 'example@gmail.com'
+      GMAIL_PASSWORD: ''
+
+  sentry-base:
+    image: 'sentry:latest'
+    container_name: sentry-base
+    restart: unless-stopped
+    depends_on:
+      - sentry-redis
+      - sentry-postgres
+    links:
+      - sentry-redis
+      - sentry-postgres
+    env_file:
+      - sentry/sentry.env
+    volumes:
+      - sentry_data:/var/lib/sentry/files
+    environment:
+      - VIRTUAL_HOST=sentry.example.com
+      - VIRTUAL_PORT=9000
+      - LETSENCRYPT_HOST=sentry.example.com
+      - LETSENCRYPT_EMAIL=you@youremail.com
+
+  sentry-cron:
+    image: 'sentry:latest'
+    restart: unless-stopped
+    depends_on:
+      - sentry-base
+    links:
+      - sentry-redis
+      - sentry-postgres
+    command: "sentry run cron"
+    env_file:
+      - sentry/sentry.env
+    volumes:
+      - sentry_data:/var/lib/sentry/files
+
+  sentry-worker:
+    image: 'sentry:latest'
+    depends_on:
+      - sentry-base
+    links:
+      - sentry-redis
+      - sentry-postgres
+    command: "sentry run worker"
+    env_file:
+      - sentry/sentry.env
+    volumes:
+      - sentry_data:/var/lib/sentry/files
+
+
+  sentry-redis:
+    image: 'redis:latest'
+
+  sentry-postgres:
+    image: 'postgres:latest'
+    environment:
+      POSTGRES_USER: sentry
+      POSTGRES_PASSWORD: sentry
+      POSTGRES_DB: sentry
+    volumes:
+      - sentry_postgres:/var/lib/postgresql/data
+
+volumes:
+  sentry_postgres:
+  sentry_data:
+
+networks:
+  default:
+    external:
+      name: webproxy

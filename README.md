@@ -12,7 +12,7 @@ All the monthly fees for git, logging, monitoring, error monitoring, alerting, C
 - [x] ELK Stack (logging)
 - [x] Grafana/Prometheus (monitoring)
 - [ ] Gitea (git)
-- [ ] Sentry (errors)
+- [x] Sentry (errors)
 - [ ] Mattermost (chat)
 - [x] NGINX (proxy)
 - [x] LetsEncrypt (safety)
@@ -37,6 +37,7 @@ Unfortunatly this setup with the SSL provisioning is not localhost friendly, als
 * portainer.example.com
 * grafana.example.com
 * prometheus.example.com
+* sentry.example.com
 
 4. Go through all the compose.yml files in the root directory and find-replace your configured domains for NGINX/SSLs and email address for LetsEncrypt if you want emails from them about alerts on your SSLs.
 
@@ -90,6 +91,35 @@ docker-compose -f gui-compose.yml up -d
 ```
 
 5. Visit Portainer configured URL to setup your admin account UN and PW
+
+### Sentry
+
+1. Generate a secret key. Add it to sentry/.env as SENTRY_SECRET_KEY
+
+```bash
+echo -e "\nSENTRY_SECRET_KEY=$(docker-compose run --rm sentry-base sentry config generate-secret-key)" >> sentry/sentry.env
+```
+
+2. Build the database. Use the interactive prompts to create a user account
+
+```bash
+docker-compose -f sentry-compose.yml run --rm sentry-base sentry upgrade
+```
+
+3. Start it
+
+```bash
+docker-compose -f sentry-compose.yml up -d
+```
+
+** To Upgrade **
+
+Use the following steps after updating sentry Dockerfile:
+
+```bash
+docker-compose -f sentry-compose.yml run --rm sentry-web upgrade
+docker-compose -f sentry-compose.yml up -d
+```
 
 #### Basic Auth
 
